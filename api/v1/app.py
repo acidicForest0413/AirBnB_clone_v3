@@ -3,6 +3,7 @@
 def my_function():
     '''Flask App that integrates with AirBnB static HTML Template'''
 
+print(my_function.__doc__)
 
 from api.v1.views import app_views
 from flask import Flask, jsonify, make_response, render_template, url_for
