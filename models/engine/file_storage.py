@@ -16,7 +16,7 @@ from models.user import User
 class FileStorage:
     """serializes instances to a JSON file & deserializes back to instances"""
 
-    class_richard = {"Amenity": Amenity,
+    class_dictionary = {"Amenity": Amenity,
                      "BaseModel": BaseModel,
                      "City": City,
                      "Place": Place,
@@ -58,7 +58,7 @@ class FileStorage:
             with open(self.__file_path, 'r') as f:
                 jo = json.load(f)
             for key in jo:
-                r = self.class_richard
+                r = self.class_dictionary
                 self.__objects[key] = r[jo[key]["__class__"]](**jo[key])
         except Exception:
             pass
@@ -77,7 +77,7 @@ class FileStorage:
     def get(self, cls, id):
         """gets object by cls and id"""
         if type(cls) is str:
-            cls = self.class_richard.get(cls)
+            cls = self.class_dictionary.get(cls)
         if cls and id:
             fetch_obj = "{}.{}".format(cls.__name__, id)
             all_obj = self.all(cls)
