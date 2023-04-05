@@ -76,7 +76,7 @@ class FileStorage:
 
     def get(self, cls, id):
         """gets object by cls and id"""
-        if type(cls) is str:
+        if isinstance(cls, str):
             cls = self.class_richard.get(cls)
         if cls and id:
             fetch_obj = "{}.{}".format(cls.__name__, id)
