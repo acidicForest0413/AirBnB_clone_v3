@@ -1,60 +1,52 @@
 #!/usr/bin/python3
-"""
-    Flask route that returns json response
-"""
-from api.v1.views import app_views
-from flask import abort, jsonify, request
-from models import storage, CNC
-from flasgger.utils import swag_from
+"""View of Cities for RESTFul API"""
+
+from api.v1.views import app_views, validate_model, get_json
+from flask import jsonify
+from models import storage, class_dictionary
+from models.user import User
 
 
-@app_views.route('/users/', methods=['GET', 'POST'])
-@swag_from('swagger_yaml/users_no_id.yml', methods=['GET', 'POST'])
-def users_no_id(user_id=None):
-    """
-        users route that handles http requests with no ID given
-    """
-
-    if request.method == 'GET':
-        all_users = storage.all('User')
-        all_users = [obj.to_json() for obj in all_users.values()]
-        return jsonify(all_users)
-
-    if request.method == 'POST':
-        req_json = request.get_json()
-        if req_json is None:
-            abort(400, 'Not a JSON')
-        if req_json.get('email') is None:
-            abort(400, 'Missing email')
-        if req_json.get('password') is None:
-            abort(400, 'Missing password')
-        User = CNC.get('User')
-        new_object = User(**req_json)
-        new_object.save()
-        return jsonify(new_object.to_json()), 201
+@app_views.route('/users', methods=['GET'], strict_slashes=False)
+def get_all_users():
+    """Retrieves the list of all USER objects"""
+    users = storage.all(User).values()
+    return jsonify([user.to_dict() for user in users])
 
 
-@app_views.route('/users/<user_id>', methods=['GET', 'DELETE', 'PUT'])
-@swag_from('swagger_yaml/users_id.yml', methods=['GET', 'DELETE', 'PUT'])
-def user_with_id(user_id=None):
-    """
-        users route that handles http requests with ID given
-    """
-    user_obj = storage.get('User', user_id)
-    if user_obj is None:
-        abort(404, 'Not found')
+@app_views.route('/users/<user_id>', methods=['GET'], strict_slashes=False)
+def get_user(user_id):
+    """Retrieves the list of all USER objects"""
+    user = validate_model("User", user_id)
+    return jsonify(user.to_dict())
 
-    if request.method == 'GET':
-        return jsonify(user_obj.to_json())
 
-    if request.method == 'DELETE':
-        user_obj.delete()
-        del user_obj
-        return jsonify({}), 200
+@app_views.route('/users/<user_id>', methods=['DELETE'], strict_slashes=False)
+def delete_user(user_id):
+    """Deletes a City object"""
+    user = validate_model("User", user_id)
+    user.delete()
+    storage.save()
+    return jsonify({}), 200
 
-    if request.method == 'PUT':
-        req_json = request.get_json()
-        if req_json is None:
-            abort(400, 'Not a JSON')
-        user_obj.bm_update(req_json)
-        return jsonify(user_obj.to_json()), 200
+
+@app_views.route('/users', methods=['POST'], strict_slashes=False)
+def create_user():
+    """User no ID given POST scenario"""
+    req_json = get_json(['email', 'password'])
+    User = class_dictionary.get('User')
+    new_object = User(**req_json)
+    new_object.save()
+    return jsonify(new_object.to_dict()), 201
+
+
+@app_views.route('/users/<user_id>', methods=['PUT'], strict_slashes=False)
+def update_user(user_id=None):
+    """User with ID given PUT scenario"""
+    user_obj = validate_model("User", user_id)
+    req_json = get_json()
+    for key, value in req_json.items():
+        if key not in ["id", "email", "created_at", "updated_at"]:
+            setattr(user_obj, key, value)
+    user_obj.save()
+    return jsonify(user_obj.to_dict())
