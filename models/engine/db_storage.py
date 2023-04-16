@@ -21,7 +21,7 @@ class DBStorage:
     """interaacts with the MySQL database"""
     __engine = None
     __session = None
-    class_richard = {"Amenity": Amenity, "City": City,
+    class_dictionary = {"Amenity": Amenity, "City": City,
                      "Place": Place, "Review": Review,
                      "State": State, "User": User}
 
@@ -43,9 +43,9 @@ class DBStorage:
     def all(self, cls=None):
         """query on the current database session"""
         new_dict = {}
-        for clss in self.class_richard:
-            if cls is None or cls is self.class_richard[clss] or cls is clss:
-                objs = self.__session.query(self.class_richard[clss]).all()
+        for clss in self.class_dictionary:
+            if cls is None or cls is self.class_dictionary[clss] or cls is clss:
+                objs = self.__session.query(self.class_dictionary[clss]).all()
                 for obj in objs:
                     key = obj.__class__.__name__ + '.' + obj.id
                     new_dict[key] = obj
@@ -78,7 +78,7 @@ class DBStorage:
     def get(self, cls, id):
         """gets object by cls and id"""
         if type(cls) is str:
-            cls = self.class_richard.get(cls)
+            cls = self.class_dictionary.get(cls)
         if cls and id:
             fetch = "{}.{}".format(cls.__name__, id)
             all_obj = self.all(cls)
